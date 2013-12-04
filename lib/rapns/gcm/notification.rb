@@ -13,6 +13,7 @@ module Rapns
       def as_json
         json = {
           'registration_ids' => registration_ids,
+          'delay_while_idle' => false,
           'data' => data
         }
 

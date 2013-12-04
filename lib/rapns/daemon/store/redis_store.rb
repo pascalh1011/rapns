@@ -81,16 +81,16 @@ module Rapns
 
         def mark_failed(notification, code, description)
           remove_notification_in_processing(notification)
-          with_database_reconnect_and_retry do
-            #return if Rapns::Notification.exists?(notification.id)
-            notification.delivered = false
-            notification.delivered_at = nil
-            notification.failed = true
-            notification.failed_at = Time.now
-            notification.error_code = code
-            notification.error_description = description
-            notification.save(:validate => false)
-          end
+          # with_database_reconnect_and_retry do
+          #   #return if Rapns::Notification.exists?(notification.id)
+          #   notification.delivered = false
+          #   notification.delivered_at = nil
+          #   notification.failed = true
+          #   notification.failed_at = Time.now
+          #   notification.error_code = code
+          #   notification.error_description = description
+          #   notification.save(:validate => false)
+          # end
         end
 
         def create_apns_feedback(failed_at, device_token, app)
