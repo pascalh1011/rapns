@@ -113,7 +113,7 @@ module Rapns
         end
 
         def create_new_notification(response, unavailable_idxs)
-          attrs = @notification.attributes.slice('app_id', 'collapse_key', 'delay_while_idle')
+          attrs = @notification.attributes.slice('app_id', 'collapse_key')
           registration_ids = unavailable_idxs.map { |i| @notification.registration_ids[i] }
           Rapns::Daemon.store.create_gcm_notification(attrs, @notification.data,
             registration_ids, deliver_after_header(response), @notification.app)
