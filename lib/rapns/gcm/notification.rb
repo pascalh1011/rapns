@@ -8,12 +8,13 @@ module Rapns
 
       def registration_ids=(ids)
         ids = [ids] if ids && !ids.is_a?(Array)
+        super
       end
 
       def as_json
         json = {
           'registration_ids' => registration_ids,
-          'delay_while_idle' => false,
+          'delay_while_idle' => delay_while_idle,
           'data' => data
         }
 
