@@ -1,3 +1,15 @@
+## 3.3.2 (June 30, 2013)
+  * Fix Rails 3.0.x compatibility (#138) (@yoppi).
+  * Ensure Rails does not set a default value for text columns (#137).
+  * Fix error in down action for add_gcm migration (#135) (@alexperto).
+
+## 3.3.1 (June 2, 2013)
+  * Fix compatibility with postgres_ext (#104).
+  * Add ability to switch the logger (@maxsz).
+  * Do not validate presence of alert, badge or sound - not actually required by the APNs (#129) (@wilg).
+  * Catch IOError from an APNs connection. (@maxsz).
+  * Allow nested hashes in APNs notification attributes (@perezda).
+
 ## 3.3.0 (April 21, 2013)
   * GCM: collapse_key is no longer required to set expiry (time_to_live).
   * Add reflection for GCM canonical IDs.

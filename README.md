@@ -10,7 +10,7 @@
 * Stable - reconnects database and network connections when lost.
 * Run as a daemon or inside an existing process.
 * Use in a scheduler for low-workload deployments ([Push API](https://github.com/ileitch/rapns/wiki/Push-API)).
-* Reflection API for fine-grained instrumentation ([Reflection API](https://github.com/ileitch/rapns/wiki/Relfection-API)).
+* Reflection API for fine-grained instrumentation ([Reflection API](https://github.com/ileitch/rapns/wiki/Reflection-API)).
 * Works with MRI, JRuby, Rubinius 1.8 and 1.9.
 * [Airbrake](http://airbrakeapp.com/) integration.
 * Built with love.
@@ -44,7 +44,7 @@ If this is your first time using the APNs, you will need to generate SSL certifi
 app = Rapns::Apns::App.new
 app.name = "ios_app"
 app.certificate = File.read("/path/to/sandbox.pem")
-app.environment = "sandbox"
+app.environment = "sandbox" # APNs environment.
 app.password = "certificate password"
 app.connections = 1
 app.save!
@@ -79,6 +79,8 @@ n.registration_ids = ["..."]
 n.data = {:message => "hi mom!"}
 n.save!
 ```
+
+GCM also requires you to respond to [Canonical IDs](https://github.com/ileitch/rapns/wiki/Canonical-IDs).
 
 ## Starting Rapns
 
@@ -163,3 +165,8 @@ Thank you to the following wonderful people for contributing:
 * [@jeffarena](https://github.com/jeffarena)
 * [@DianthuDia](https://github.com/DianthuDia)
 * [@dup2](https://github.com/dup2)
+* [@maxsz](https://github.com/maxsz)
+* [@wilg](https://github.com/wilg)
+* [@perezda](https://github.com/perezda)
+* [@alexperto](https://github.com/alexperto)
+* [@yoppi](https://github.com/yoppi)

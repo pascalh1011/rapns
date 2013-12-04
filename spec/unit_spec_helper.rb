@@ -52,10 +52,16 @@ Bundler.require(:default)
 
 require 'database_cleaner'
 
+# Ensure SQLite3Adapter is loaded before DatabaseCleaner so that DC
+# can detect the correct superclass.
+# SQLite3 is used by the acceptance tests.
+require 'active_record/connection_adapters/sqlite3_adapter'
+
 DatabaseCleaner.strategy = :truncation
 
 require 'rapns'
 require 'rapns/daemon'
+require 'mock_redis'
 
 Rapns::Notification.reset_column_information
 Rapns::App.reset_column_information
@@ -76,6 +82,13 @@ RSpec.configure do |config|
   config.after(:each) do
     Rapns.logger = nil
     Rapns::Daemon.store = nil
+    Rapns.config.set_defaults if Rapns.config.kind_of?(Rapns::Configuration)
+  end
+
+  config.before(:each, :mock_redis => true) do
+    mock_redis = MockRedis.new
+    Redis.current = mock_redis
+    Redis.stub(:new).and_return(mock_redis)
   end
 end
 
