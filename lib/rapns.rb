@@ -52,4 +52,12 @@ module Rapns
   def self.logger=(logger)
     @logger = logger
   end
+
+  def self.with_redis(&block)
+    @connection_pool ||= ConnectionPool.new(size: config.number_of_connections, timeout: config.connection_timeout) do
+      Redis.new({host: config.redis_host, port: config.redis_port})
+    end
+
+    @connection_pool.with { |redis| yield(redis) } if block_given?
+  end
 end

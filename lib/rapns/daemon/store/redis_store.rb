@@ -14,8 +14,8 @@ module Rapns
     end
 
     def save_to_redis
-      self.id = Redis.current.incr('rapns:notifications:counter') if self.id.nil?
-      Redis.current.rpush('rapns:notifications:pending', dump_redis_value)
+      self.id = Rapns.with_redis { |redis| redis.incr('rapns:notifications:counter') } if self.id.nil?
+      Rapns.with_redis { |redis| redis.rpush('rapns:notifications:pending', dump_redis_value) }
     end
 
     def dump_redis_value
