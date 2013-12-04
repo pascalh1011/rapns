@@ -8,7 +8,6 @@ module Rapns
 
       def registration_ids=(ids)
         ids = [ids] if ids && !ids.is_a?(Array)
-        super
       end
 
       def as_json

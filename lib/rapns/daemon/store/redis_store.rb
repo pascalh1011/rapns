@@ -94,9 +94,9 @@ module Rapns
         end
 
         def create_apns_feedback(failed_at, device_token, app)
-          with_database_reconnect_and_retry do
-            Rapns::Apns::Feedback.create!(:failed_at => failed_at, :device_token => device_token, :app => app)
-          end
+          #with_database_reconnect_and_retry do
+          #  Rapns::Apns::Feedback.create!(:failed_at => failed_at, :device_token => device_token, :app => app)
+          #end
         end
 
         def create_gcm_notification(attrs, data, registration_ids, deliver_after, app)
