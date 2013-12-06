@@ -6,25 +6,34 @@ require 'rapns/daemon/store/active_record/reconnectable'
 # require 'active_support/core_ext/marshal'
 
 module Rapns
+  REDIS_LIST_NAME = 'rapns:notifications'
 
   module NotificationAsRedisObject
-
     def self.included(base)
       base.extend ClassMethods
     end
 
     def save_to_redis
-      self.id = Rapns.with_redis { |redis| redis.incr('rapns:notifications:counter') } if self.id.nil?
-      Rapns.with_redis { |redis| redis.rpush('rapns:notifications:pending', dump_redis_value) }
+      self.created_at ||= Time.now
+
+      Rapns.with_redis { |redis| redis.rpush(REDIS_LIST_NAME, dump_to_redis) } if valid?
     end
 
-    def dump_redis_value
-      Marshal.dump(self)
+    def dump_to_redis
+      MultiJson.dump(self.attributes)
     end
 
     module ClassMethods
-      def marshal_redis_value(redis_value)
-        Marshal.load(redis_value)
+      def load_from_redis(redis_value)
+        attributes = MultiJson.load(redis_value)
+        attributes['data'] = MultiJson.load(attributes['data']) if attributes['data']
+        instance = attributes['type'].constantize.new(attributes)
+        instance.created_at = Time.parse(attributes['created_at'])
+
+        instance
+      rescue MultiJson::LoadError, LoadError
+        Rails.logger.error "[RAPNS]: Attempted to parse invalid Redis object #{redis_value.inspect}"
+        nil
       end
     end
 
@@ -36,32 +45,42 @@ module Rapns
         include Rapns::Daemon::Store::RedisStore::Reconnectable
         include Rapns::Daemon::Store::ActiveRecord::Reconnectable
 
-        PENDING_QUEUE_NAME = 'rapns:notifications:pending'
-        RETRIES_QUEUE_NAME = 'rapns:notifications:retries'
-        PROCESSING_QUEUE_NAME = 'rapns:notifications:processing'
-
         def deliverable_notifications(apps)
+          notifications = []
+          expired_threshold = Rapns.config.stalled_notification_tolerence.seconds.ago
 
-          redis_values = with_redis_reconnect_and_retry do | redis|
+          with_redis_reconnect_and_retry do |redis|
+            while (notifications.length < Rapns.config.batch_size && newest_redis_item = Redis.current.rpop(Rapns::REDIS_LIST_NAME))
+              notification = Rapns::Apns::Notification.load_from_redis(newest_redis_item)
 
-            batch_size = [redis.llen(PENDING_QUEUE_NAME), Rapns.config.batch_size].min
-            redis_values = redis.lrange(PENDING_QUEUE_NAME, 0, batch_size-1)
-
-            unless redis_values.empty?
-              time_score = Time.now.utc.to_i
-              redis_values_with_scores = redis_values.collect { |value| [time_score, value] }
-              redis.zadd PROCESSING_QUEUE_NAME, redis_values_with_scores.flatten
-              redis.ltrim PENDING_QUEUE_NAME, batch_size, redis.llen(PENDING_QUEUE_NAME)
+              unless notification.created_at < expired_threshold || (notification.expiry && notification.created_at + notification.expiry.seconds < Time.now)
+                notifications << notification
+              end
             end
-
-            move_retries_into_pending(redis)
-            handle_stalled_notifications(redis)
-
-            redis_values
-
           end
 
-          build_notifications redis_values
+          notifications
+
+          # redis_values = with_redis_reconnect_and_retry do | redis|
+
+          #   batch_size = [redis.llen(PENDING_QUEUE_NAME), Rapns.config.batch_size].min
+          #   redis_values = redis.lrange(PENDING_QUEUE_NAME, 0, batch_size-1)
+
+          #   unless redis_values.empty?
+          #     time_score = Time.now.utc.to_i
+          #     redis_values_with_scores = redis_values.collect { |value| [time_score, value] }
+          #     redis.zadd PROCESSING_QUEUE_NAME, redis_values_with_scores.flatten
+          #     redis.ltrim PENDING_QUEUE_NAME, batch_size, redis.llen(PENDING_QUEUE_NAME)
+          #   end
+
+          #   move_retries_into_pending(redis)
+          #   handle_stalled_notifications(redis)
+
+          #   redis_values
+
+          # end
+
+          # build_notifications redis_values
         end
 
         def retry_after(notification, deliver_after)
@@ -126,6 +145,7 @@ module Rapns
 
         def remove_notification_in_processing(notification)
           with_redis_reconnect_and_retry do |redis|
+            puts notification.dump_redis_value.inspect
             redis.zrem PROCESSING_QUEUE_NAME, notification.dump_redis_value
           end
         end

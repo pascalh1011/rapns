@@ -14,14 +14,14 @@ platform :mri_19, :mri_20 do
   gem 'cane'
 end
 
-platform :ruby do
-  gem 'pg'
-  gem 'mysql2'
-  gem 'mysql'
-  gem 'yajl-ruby'
-  gem 'sqlite3'
-  #gem 'perftools.rb'
-end
+ platform :ruby do
+   gem 'pg'
+#   gem 'mysql2'
+#   gem 'mysql'
+#   gem 'yajl-ruby'
+   gem 'sqlite3'
+#   #gem 'perftools.rb'
+ end
 
 platform :jruby do
   gem 'activerecord-jdbc-adapter', '>= 1.2.6'

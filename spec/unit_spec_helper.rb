@@ -89,6 +89,7 @@ RSpec.configure do |config|
     mock_redis = MockRedis.new
     Redis.current = mock_redis
     Redis.stub(:new).and_return(mock_redis)
+    Rapns.stub(:with_redis).and_yield(mock_redis)
   end
 end
 
