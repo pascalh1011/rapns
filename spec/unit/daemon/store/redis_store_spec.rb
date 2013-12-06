@@ -54,7 +54,7 @@ describe Rapns::Daemon::Store::RedisStore, mock_redis: true do
   context 'daemon' do
     it 'returns a batch of deliverable items from the queue' do
       Rapns.config.batch_size = 3
-      5.times { create_ios_notification }
+      5.times { create_ios_notification() }
 
       items = store.deliverable_notifications([])
 
@@ -68,6 +68,25 @@ describe Rapns::Daemon::Store::RedisStore, mock_redis: true do
 
       Redis.current.llen(Rapns::REDIS_LIST_NAME).should == 2
       store.deliverable_notifications([]).length.should == 0
+    end
+
+    it 'does not touch items meant to be delivered later' do
+      create_ios_notification(deliver_after: Time.now + 1.day)
+
+      store.deliverable_notifications([]).length.should == 0
+      Redis.current.llen(Rapns::REDIS_LIST_NAME).should == 1
+    end
+
+    it 'schedules retries for items' do
+      notification = create_ios_notification
+      Redis.current.del(Rapns::REDIS_LIST_NAME)
+
+      deliver_after = Time.now + 1.day
+
+      store.retry_after(notification, deliver_after)
+      stored_notification = Rapns::Apns::Notification.load_from_redis(Redis.current.rpop(Rapns::REDIS_LIST_NAME))
+      stored_notification.retries.should == 1
+      stored_notification.deliver_after.to_i.should == deliver_after.to_i
     end
   end
 end
