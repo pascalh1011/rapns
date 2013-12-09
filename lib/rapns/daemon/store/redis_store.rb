@@ -67,7 +67,7 @@ module Rapns
             end
 
             # Add notifications back into the list that we're not ready to process yet
-            redis.rpush(Rapns::REDIS_LIST_NAME, delayed_notifications) unless delayed_notifications.blank?
+            redis.rpush(Rapns::REDIS_LIST_NAME, delayed_notifications) unless delayed_notifications.empty?
           end
 
           notifications
