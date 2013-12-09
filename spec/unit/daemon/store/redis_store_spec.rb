@@ -39,6 +39,7 @@ describe Rapns::Daemon::Store::RedisStore, mock_redis: true do
     stored_notification.badge.should == 2
     stored_notification.expiry.should == 1.day.to_i
     stored_notification.attributes_for_device.should == { 'blah' => 10 }
+    stored_notification.id.should_not be_blank
   end
 
   it 'adds an Android push notification to the queue' do
@@ -49,6 +50,7 @@ describe Rapns::Daemon::Store::RedisStore, mock_redis: true do
     stored_notification.registration_ids.should == ['abcdefg']
     stored_notification.data.should == { 'message' => 'Hello there' }
     stored_notification.collapse_key.should == '12345'
+    stored_notification.id.should_not be_blank
   end
 
   context 'daemon' do

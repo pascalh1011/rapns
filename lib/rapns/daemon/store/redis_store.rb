@@ -15,12 +15,11 @@ module Rapns
 
     def save_to_redis
       self.created_at ||= Time.now
-
       Rapns.with_redis { |redis| redis.rpush(REDIS_LIST_NAME, dump_to_redis) } if valid?
     end
 
     def dump_to_redis
-      MultiJson.dump(self.attributes.merge(type: self.class.to_s))
+      MultiJson.dump(self.attributes.merge(type: self.class.to_s, id: SecureRandom.uuid))
     end
 
     module ClassMethods
@@ -30,6 +29,7 @@ module Rapns
         instance = attributes['type'].constantize.new(attributes)
         instance.created_at = Time.parse(attributes['created_at'])
         instance.retries = attributes['retries'].to_i
+        instance.id = attributes['id'].to_s
 
         instance
       rescue MultiJson::LoadError, LoadError
