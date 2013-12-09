@@ -19,7 +19,7 @@ module Rapns
     end
 
     def dump_to_redis
-      MultiJson.dump(self.attributes.merge(type: self.class.to_s, id: SecureRandom.uuid))
+      MultiJson.dump(self.attributes.merge(type: self.class.to_s, id: SecureRandom.random_number(2**32)))
     end
 
     module ClassMethods
@@ -29,7 +29,7 @@ module Rapns
         instance = attributes['type'].constantize.new(attributes)
         instance.created_at = Time.parse(attributes['created_at'])
         instance.retries = attributes['retries'].to_i
-        instance.id = attributes['id'].to_s
+        instance.id = attributes['id'].to_i
 
         instance
       rescue MultiJson::LoadError, LoadError
