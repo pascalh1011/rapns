@@ -20,7 +20,7 @@ module Rapns
     end
 
     def dump_to_redis
-      MultiJson.dump(self.attributes)
+      MultiJson.dump(self.attributes.merge(type: self.class.to_s))
     end
 
     module ClassMethods
