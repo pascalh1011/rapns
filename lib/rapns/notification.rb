@@ -39,7 +39,7 @@ module Rapns
     def data=(attrs)
       return unless attrs
       raise ArgumentError, "must be a Hash" if !attrs.is_a?(Hash)
-      super(multi_json_dump(attrs))
+      write_attribute(:data, multi_json_dump(attrs))
     end
 
     def data
