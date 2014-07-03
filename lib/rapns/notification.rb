@@ -15,8 +15,10 @@ module Rapns
         :alert_is_json, :app, :app_id, :collapse_key, :registration_ids
     end
 
+    attr_accessible :data
+
     validates :expiry, :numericality => true, :allow_nil => true
-    validates :app, :presence => true
+    validates :app_id, :presence => true
 
     scope :ready_for_delivery, lambda {
       where('delivered = ? AND failed = ? AND (deliver_after IS NULL OR deliver_after < ?)',
