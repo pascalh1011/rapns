@@ -12,6 +12,10 @@ module Rapns
       alias_method :attributes_for_device=, :data=
       alias_method :attributes_for_device, :data
 
+      def payload
+        multi_json_dump(as_json).gsub(/\\u(.{4})/) { |match| [$1.to_i(16)].pack('U') }
+      end
+      
       def device_token=(token)
         write_attribute(:device_token, token.delete(" <>")) if !token.nil?
       end
